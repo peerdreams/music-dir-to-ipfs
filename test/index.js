@@ -1,5 +1,6 @@
 var join = require('path').join
-var exampleFolder = 'example-music-dir'
+// var exampleFolder = 'example-music-dir'
+var exampleFolder = 'The Dip - The Dip (2015) [MP3 V0]'
 var dir = join(__dirname,exampleFolder)
 var ipfsAPI = require('ipfs-api')
 // connect to ipfs daemon API server

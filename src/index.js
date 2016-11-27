@@ -5,7 +5,8 @@ var readdir = require('fs').readdir
 var read = require('fs').createReadStream
 var kefir = require('kefir')
 let truthy = x => !!x
-var write = require('fs').writeFile
+let write = require('fs').writeFile
+let exec = require('child_process').exec
 
 function mdataS (hash, path) {
   return kefir.fromNodeCallback(cb => {
@@ -49,10 +50,12 @@ function writeS (path, jsobj) {
 // stream of `ipfs add` results
 function addDirToIpfsS (ipfs, dir) {
   return kefir.fromNodeCallback(cb => {
-    ipfs.util.addFromFs(dir, {
-      recursive: true,
-    }, cb)
+    exec(`ipfs add -r "${dir}"`, cb)
   })
+  // return just the ipfs hash of the dir
+    .map(x=>x.split('\n'))
+    .map(x=>x[x.length-2])
+    .map(x => x.split(' ')[1])
 }
 
 function addAll (ipfs, dir, cb) {
@@ -63,16 +66,18 @@ function addAll (ipfs, dir, cb) {
     )
     let tracksJsonPath = join(dir, 'tracks.json')
 
-    let allTracksMetadataS = ipfsUploadedFiles =>
-        kefir.combine(
-          ipfsUploadedFiles
-            .map(mdataFromS))
+    function allTracksMetadataS (ipfsUploadedFiles) {
+      return kefir.combine(
+        ipfsUploadedFiles
+          .map(mdataFromS))
+        .map(lst => lst.filter(truthy))
+    }
+
 
     ipfsDataS
       .flatMap(allTracksMetadataS)
-      .map(lst => lst.filter(truthy))
       .flatMap(lst => writeS(tracksJsonPath, lst))
-      .flatMap(_ => addDirToIpfsS(ipfs, dir).map(last).map(x => x.hash))
+      .flatMap(_ => addDirToIpfsS(ipfs, dir))
       .onValue(x => cb(null, x))
 
     ipfsDataS
