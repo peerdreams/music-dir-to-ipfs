@@ -1,4 +1,6 @@
-# music-dir-to-ipfs
+# [DEPRECATED] music-dir-to-ipfs
+
+[this repo has been merged with ipfs-music-browser](https://github.com/peerdreams/ipfs-music-browser/tree/master/lib/music-dir-to-ipfs)
 
 add a directory of music to ipfs.
 
